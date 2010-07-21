@@ -80,7 +80,6 @@ DUI(function() { DUI.ns('Stream', new DUI.Class({
 
         if (params) {
             this.req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            this.req.setRequestHeader("Content-Length", params.length);
         }
         
         this.req.send(params);
