@@ -42,11 +42,18 @@ DUI(function() { DUI.ns('Stream', new DUI.Class({
     streams: [],
     listeners: {},
     
-    init: function(url) {
-        this.load(url);
+    init: function(url, args) {
+        this.load(url, args);
     },
     
-    load: function(url) {
+    load: function(url, args) {
+
+        if (!args) { args = {} }
+        if (!args.method) { args.method = 'get' }
+        args.method = args.method.toLowerCase();
+
+        var params = jQuery.param( args.data );
+
         //These versions of XHR are known to work with MXHR
         try { this.req = new ActiveXObject('MSXML2.XMLHTTP.6.0'); } catch(nope) {
             try { this.req = new ActiveXObject('MSXML3.XMLHTTP'); } catch(nuhuh) {
@@ -59,15 +66,24 @@ DUI(function() { DUI.ns('Stream', new DUI.Class({
         //These versions don't support readyState == 3 header requests
         //try { this.req = new ActiveXObject('Microsoft.XMLHTTP'); } catch(err) {}
         //try { this.req = new ActiveXObject('MSXML2.XMLHTTP.3.0'); } catch(err) {}
-        
-        this.req.open('GET', url, true);
+
+        if (params && args.method == 'get') {
+           url = url + '?' + params;
+           params = null;
+        }
+        this.req.open(args.method.toUpperCase(), url, true);
         
         var _this = this;
         this.req.onreadystatechange = function() {
             _this.readyStateNanny.apply(_this);
         }
+
+        if (params) {
+            this.req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            this.req.setRequestHeader("Content-Length", params.length);
+        }
         
-        this.req.send(null);
+        this.req.send(params);
     },
     
     readyStateNanny: function() {
